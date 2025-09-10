@@ -1,0 +1,45 @@
+{
+   "action": {
+      "default_icon": {
+         "128": "assets/png/icon_128x128.png",
+         "16": "assets/png/icon_16x16.png",
+         "32": "assets/png/icon_32x32.png"
+      },
+      "default_popup": "popup.html?scaletofit=true&isPopup=true",
+      "default_title": "Magic Eden"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "js": [ "content.js" ],
+      "matches": [ "https://*/*", "http://localhost/*", "http://127.0.0.1/*", "http://[::1]/*" ],
+      "run_at": "document_start"
+   } ],
+   "content_security_policy": {
+      "extension_pages": "default-src 'self'; frame-src https://ord-mirror.magiceden.dev; frame-ancestors 'self'; form-action 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://fetch-n-cache.a.exodus.io https://img-cdn.magiceden.dev https://renderer.magiceden.dev data:; connect-src https: wss: data: blob:",
+      "sandbox": "sandbox default-src 'self'; frame-src https://ord-mirror.magiceden.dev; frame-ancestors 'self'; form-action 'none'; object-src 'none'; style-src 'self' 'unsafe-inline'; img-src 'self' https://fetch-n-cache.a.exodus.io https://img-cdn.magiceden.dev https://renderer.magiceden.dev data:; connect-src https: wss: data: blob:"
+   },
+   "description": "A digital wallet for cross-chain collectors. Collect any NFT on any chain, and securely manage your entire digital collection.",
+   "differential_fingerprint": "1.e7870ca5e6ccb694a6b5ea5da53bece978c7090ea5d7e6ca041e560815363166",
+   "externally_connectable": {
+   },
+   "homepage_url": "https://magiceden.io/",
+   "icons": {
+      "128": "assets/png/icon_128x128.png",
+      "16": "assets/png/icon_16x16.png",
+      "32": "assets/png/icon_32x32.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnJ58I388qC8ZyxJM7GxXpMrEvKrej1R0rKxHMTIYHaGQMoI5I8eBeQPqFLueFcCbO1L6JbidN58IaKNXjrniYVbNbZPxsFR6Wa+KIbSM7z9juGxXs2JeHJuePhzViubN/A3v0VpJH7j6RuAv1C35MAmjVMiFbP/YBN5EEupGgG9YKLXN347C3XB4puim4yv5jOHGu4I6SnJJPIrhDPsiUJOAO+eMKS4sXAriPRFxbn+pdsrSB7M98IcyncKuGbohgz7V3GDyMB1GlOwHeGgBixBFT7k3kpXR3r6F3G1IWfstClhqwrjdX2Lt4WXgBPiPS15mBqJFGgzpBrynGc36ywIDAQAB",
+   "manifest_version": 3,
+   "minimum_chrome_version": "100",
+   "name": "Magic Eden Wallet",
+   "permissions": [ "storage", "unlimitedStorage", "alarms" ],
+   "short_name": "Magic Eden",
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.14.3",
+   "web_accessible_resources": [ {
+      "matches": [ "https://*/*", "http://localhost/*", "http://127.0.0.1/*", "http://[::1]/*" ],
+      "resources": [ "ethereum-provider.js", "management-provider.js", "solana-provider.js", "inapp.js", "sell-crypto.html", "sell-crypto.js", "buy-crypto.html", "buy-crypto.js" ]
+   } ]
+}

@@ -1,0 +1,2 @@
+import{h as i}from"./chunk-5W7YPRT3.js";import{g as t,j as o}from"./chunk-E2H5RB2U.js";import{h as e,n as a}from"./chunk-3KENBVE7.js";e();a();var s=new i("Failed to get FiatRampProviderUrl"),f=async(p,m,n,l,R)=>{try{let c={"x-client-platform":p,"x-client-app-version":m,"x-client-locale":n},r=await t.api().headers(c).bearer(R).post("/fiat_ramp/v2/onramp/provider_url",l);if(!o(r))throw s;return r.data}catch{throw s}};export{f as a};
+//# sourceMappingURL=chunk-DZ3GQOT6.js.map

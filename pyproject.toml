@@ -1,0 +1,8 @@
+[tool.pyarmor]
+src = "."
+entry = "main.py"
+output = "dist"
+
+# [tool.pyarmor.license]   ← 注释掉这段
+# expired = "2025-12-31"
+# bind_disk = true

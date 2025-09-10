@@ -1,0 +1,5 @@
+BASE_RPC = "https://mainnet.base.org"
+ABS_RPC = "https://api.mainnet.abs.xyz"
+POL_RPC = "https://polygon-rpc.com"
+SEISMIC_DEV_RPC = "https://node-2.seismicdev.net/rpc"
+SEPOLIA_RPC = "https://sepolia.infura.io/v3/31d0dd6e87754733866c43561355e8a1"

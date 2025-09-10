@@ -1,0 +1,2 @@
+import{Ea as n,ca as a,v as i}from"./chunk-27TD4NX4.js";import{a as f}from"./chunk-UA6ADLWZ.js";import{f as p,h as o,n as r}from"./chunk-3KENBVE7.js";o();r();var e=p(f()),y=({assets:t,name:d,onClick:c,isSelected:m,estimatedArrival:s})=>e.default.createElement(n,{rows:[{type:"radio",active:m??!1,start:t.roundIcon?e.default.createElement(a,{width:44,height:44,borderRadius:"circle",src:t.roundIcon}):void 0,topLeft:d,bottomLeft:{before:e.default.createElement(i.Clock,{color:"textSecondary",size:14}),text:s},onPress:c}]});export{y as a};
+//# sourceMappingURL=chunk-XJI624TH.js.map
