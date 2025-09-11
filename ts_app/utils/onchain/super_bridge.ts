@@ -121,9 +121,6 @@ export class SuperBridge {
   async b2bs(amt: string, rpc = SEPOLIA_RPC): Promise<string> {
     const wallet = new EvmWallet(rpc, {
       privateKey: this.pk,
-      gasBumpPercent: 15, // gasLimit +15%
-      priorityBumpPercent: 30, // 小费 +30%
-      gasExtra: 5000n,
     });
     const tx = await wallet.callWithAbi(
       this.contract,

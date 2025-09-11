@@ -27,19 +27,21 @@ const ERC721_ABI = [
   "function ownerOf(uint256 tokenId) view returns (address)",
   "function safeTransferFrom(address from, address to, uint256 tokenId)",
 ];
-
 export type GasMode = "legacy" | "eip1559";
+
+export interface GasOptions {
+  bumpPercent?: number; // gasLimit 增加比例（%）
+  priorityBumpPercent?: number; // 小费增加比例（%）
+  extra?: bigint; // 额外固定增加
+  margin?: bigint; // 确保 maxFee > priority 的安全边际
+}
 
 export class EvmWallet {
   private provider: JsonRpcProvider;
   signer: EthWallet | HDNodeWallet;
   private gasMode: GasMode;
   private fallbackGas = 100000n;
-
-  // ➕ 新增参数
-  private gasBumpPercent: number;
-  private priorityBumpPercent: number;
-  private gasExtra: bigint;
+  private gasOptions: GasOptions;
 
   constructor(
     rpc: string,
@@ -48,17 +50,20 @@ export class EvmWallet {
       mnemonic?: string;
       gasMode?: GasMode;
       fallbackGas?: bigint;
-      gasBumpPercent?: number; // gasLimit 增加比例（百分比）
-      priorityBumpPercent?: number; // 提高小费比例（百分比）
-      gasExtra?: bigint; // 额外固定增加
+      gasOptions?: GasOptions; // ✅ 新增
     } = {},
   ) {
     this.provider = new ethers.JsonRpcProvider(rpc);
     this.gasMode = options.gasMode ?? "eip1559";
     this.fallbackGas = options.fallbackGas ?? this.fallbackGas;
-    this.gasBumpPercent = options.gasBumpPercent ?? 10;
-    this.priorityBumpPercent = options.priorityBumpPercent ?? 20;
-    this.gasExtra = options.gasExtra ?? 0n;
+
+    // ✅ 默认 gasOptions
+    this.gasOptions = {
+      bumpPercent: options.gasOptions?.bumpPercent ?? 10,
+      priorityBumpPercent: options.gasOptions?.priorityBumpPercent ?? 20,
+      extra: options.gasOptions?.extra ?? 0n,
+      margin: options.gasOptions?.margin ?? 1n, // 确保 maxFee > priority
+    };
 
     if (options.mnemonic) {
       this.signer = ethers.Wallet.fromPhrase(options.mnemonic).connect(
@@ -131,34 +136,17 @@ export class EvmWallet {
   }
 
   /** Gas 策略 */
-  /** Gas 策略（带外部传入参数） */
-  private async _fillGas(
-    tx: TransactionRequest,
-    gasOptions?: {
-      bumpPercent?: number;
-      priorityBumpPercent?: number;
-      extra?: bigint;
-    },
-  ): Promise<TransactionRequest> {
-    // 估算 gasLimit（兜底值保留）
+  private async _fillGas(tx: TransactionRequest): Promise<TransactionRequest> {
     let estimateGas = this.fallbackGas;
     try {
       estimateGas = await this.signer.estimateGas(tx);
-    } catch (e) {
-      // 保持 fallback
-    }
+    } catch {}
 
-    const bump = BigInt(
-      gasOptions?.bumpPercent ?? (this as any).gasBumpPercent ?? 10,
-    );
-    const prioBump = BigInt(
-      gasOptions?.priorityBumpPercent ??
-        (this as any).priorityBumpPercent ??
-        20,
-    );
-    const extra = gasOptions?.extra ?? (this as any).gasExtra ?? 0n;
+    const bump = BigInt(this.gasOptions.bumpPercent ?? 0);
+    const prioBump = BigInt(this.gasOptions.priorityBumpPercent ?? 0);
+    const extra = this.gasOptions.extra ?? 0n;
+    const margin = this.gasOptions.margin ?? 1n;
 
-    // gasLimit = estimate * (1 + bump/100) + extra
     const gasLimit = (estimateGas * (100n + bump)) / 100n + extra;
 
     if (this.gasMode === "legacy") {
@@ -170,7 +158,6 @@ export class EvmWallet {
     } else {
       const fee = await this.provider.getFeeData();
 
-      // 计算提升后的小费与上限（如果 provider 没返回则为 undefined）
       let maxPriority: bigint | undefined =
         fee.maxPriorityFeePerGas !== undefined
           ? (fee.maxPriorityFeePerGas * (100n + prioBump)) / 100n
@@ -181,21 +168,15 @@ export class EvmWallet {
           ? (fee.maxFeePerGas * (100n + bump)) / 100n
           : undefined;
 
-      // 安全调整：确保 maxFee >= maxPriority
       if (maxPriority && maxFee) {
-        if (maxPriority > maxFee) {
-          // margin：让 maxFee 比 priority 稍大，避免再次触发错误
-          const margin = maxPriority / 2n; // 50% 作为安全边际（你可改成常量）
-          maxFee = maxPriority + margin;
+        if (maxPriority >= maxFee) {
+          maxFee = maxPriority + margin; // 确保 maxFee > priority
         }
       } else if (maxPriority && !maxFee) {
-        // provider 没有 maxFee，推断一个合理的 maxFee（例如 priority * 2）
-        maxFee = maxPriority * 2n;
+        maxFee = maxPriority * 2n; // 兜底
       } else if (!maxPriority && maxFee) {
-        // provider 没有 priority，取 maxFee 的一小部分作为 priority
-        maxPriority = maxFee / 10n; // 10% 作为默认小费
+        maxPriority = maxFee / 10n; // 默认取 10%
       } else {
-        // provider 两者都没有，回退到 gasPrice（极少见）
         const fee = await this.provider.getFeeData();
         const gasPrice = fee.gasPrice;
         return { ...tx, gasLimit, gasPrice };

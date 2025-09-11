@@ -35,6 +35,7 @@ export class Speolia extends Base {
     let w = new EvmWallet(SEPOLIA_RPC, { privateKey: to.private_key });
     const _amt = await w.getBalance(to.address);
     if (Number(_amt) > 0) {
+      await this.updateAccountByID({ amt: _amt }, to.id);
       return;
     }
     const from = await this.getFrom(to.from_id);

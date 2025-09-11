@@ -130,6 +130,7 @@ export class Base extends APP {
     );
 
     const order = option.orderBy ?? sql`RAND()`;
+
     const query = await this._db
       .select()
       .from(this.table)
