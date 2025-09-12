@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "bin": "index.ts",
   "scripts": {
-    "debug": "ts-node index.ts -n ithaca",
+    "debug": "ts-node index.ts -n bloom",
     "start": "ts-node index.ts",
     "test": "ts-node test.ts",
     "build": "tsup",

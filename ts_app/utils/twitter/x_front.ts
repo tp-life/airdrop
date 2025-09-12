@@ -31,7 +31,7 @@ class TwitterAuthenticator {
   protected domain: string | null;
   static SUSPENDED_SELECTORS = [
     '//*[contains(text(), "Your account is suspended")]',
-    '//*[contains(text(), "Your account has been locked")]',
+    '//*[contains(text(), "Your account has been locked.")]',
     '//*[contains(text(), "Access Denied")]',
   ];
 
@@ -86,6 +86,11 @@ class TwitterConnector extends TwitterAuthenticator {
     if (await has(page, '//*[contains(text(), "Your account is suspended")]')) {
       throw new BlockedError("Twitter账号已被暂停");
     }
+    if (
+      await has(page, '//*[contains(text(), "Your account has been locked.")]')
+    ) {
+      throw new BlockedError("Twitter账号已被暂停");
+    }
 
     const tasks = {
       '//*[contains(text(), "Your account is suspended")]': async () => {
@@ -95,7 +100,7 @@ class TwitterConnector extends TwitterAuthenticator {
       '//*[@data-testid="loginButton"]': async () => {
         throw new BlockedError("Twitter账号已被暂停");
       },
-      '//*[contains(text(), "Your account has been locked")]': async () => {
+      '//*[contains(text(), "Your account has been locked.")]': async () => {
         throw new BlockedError("Twitter账号已被暂停");
       },
       'button[data-testid="apple_sign_in_button"]': async () => {
@@ -163,7 +168,7 @@ export async function autoXAuth(
   const authButton = await page.$(wrapSelector(config.auth_btn));
   if (!authButton) throw new Error("未找到授权按钮");
 
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 30; i++) {
     const [token, username] = await TwitterTokenHandler.getToken(
       config,
       source,
@@ -175,6 +180,7 @@ export async function autoXAuth(
     try {
       await twitter.connect(page);
     } catch (e) {
+      logger.error("推特链接错误：", e.message);
       if (e instanceof BlockedError) {
         await TokenStatusHandler.handleBlankToken(
           token,
@@ -195,6 +201,7 @@ export async function autoXAuth(
         return true;
       }
     } catch (e) {
+      logger.error("推特链接错误：", e.message);
       if (e instanceof BlockedError) {
         await TokenStatusHandler.handleBlankToken(
           token,
