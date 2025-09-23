@@ -7,21 +7,15 @@ import { rimraf } from "rimraf";
 import { sleep } from "../help";
 import { captchaSolver, walletExtList, yesCaptcha } from "../../config/ext";
 import { settingYesCaptcha } from "./ext";
-import { getTypeByExt, walletType } from "../wallet/config";
+import { getTypeByExt } from "../wallet/config";
 import { Wallet } from "../wallet/wallet";
 import { checkTurnstile } from "./turnstile";
 import { setCaptchaSolver } from "./captcha-solver";
-import { newInjectedPage } from "fingerprint-injector";
 
 type BrowserOpts = {
   url?: string;
   pk?: string;
   autoClick?: boolean;
-};
-
-type DisableNewPagesController = {
-  enable: () => void;
-  disable: () => void;
 };
 
 export class BrowserManage {
@@ -125,22 +119,28 @@ export class BrowserManage {
   async close() {
     logger.loading("开始准备关闭浏览器中...");
     try {
-      // 关闭浏览器（有时会挂，需要超时机制）
-      await this.browser.close();
-    } catch (err) {
-      logger.error(`browser.close 失败，尝试强杀进程：${err}`);
-      await this.browser.disconnect();
+      if (this.browser) {
+        try {
+          await this.browser.close();
+        } catch (err) {
+          logger.error(`browser.close 失败，尝试断开连接：${err}`);
+          await this.browser.disconnect();
+        }
+      }
     } finally {
       logger.info("准备清理缓存目录...");
-      try {
-        const result = await rimraf(this.userDir, {
-          preserveRoot: true,
-          maxRetries: 3,
-        });
-        logger.info(`缓存目录清理完成，结果：${result}`);
-      } catch (rimrafErr) {
-        logger.error(`缓存目录删除失败：${rimrafErr}`);
+      // 最多等 5 秒，分批尝试删除
+      for (let i = 0; i < 5; i++) {
+        try {
+          await rimraf(this.userDir, { preserveRoot: true });
+          logger.info("缓存目录清理完成");
+          return;
+        } catch (err) {
+          logger.warn(`目录删除失败，第 ${i + 1} 次重试: ${err}`);
+          await sleep(1000);
+        }
       }
+      logger.error("缓存目录删除最终失败！");
     }
   }
 

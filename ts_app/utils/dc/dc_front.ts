@@ -113,9 +113,10 @@ class DiscordAuthenticator {
       for (let i = 0; i < 10; i++) {
         try {
           await el.click();
-          await sleep(1_000);
+          await sleep(2_000);
           if (await has(page, DiscordAuthenticator.LOGIN_SELECTORS[0])) {
             await el.click();
+            continue;
           }
 
           return true;

@@ -45,3 +45,32 @@ export class InsufficientBalance extends Error {
     this.name = "InsufficientBalance";
   }
 }
+
+// 自定义错误类
+export class TwitterError extends Error {
+  public errorCode?: number;
+  public errorMessage: string;
+
+  constructor(payload: { error_code?: number; error_message: string }) {
+    super(payload.error_message);
+    this.name = "TwitterError";
+    this.errorCode = payload.error_code;
+    this.errorMessage = payload.error_message;
+  }
+}
+
+export class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "RateLimitError";
+  }
+}
+
+export class TwitterAccountSuspended extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TwitterAccountSuspended";
+  }
+}
+
+export class IncorrectData extends TwitterError {}

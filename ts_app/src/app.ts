@@ -19,7 +19,7 @@ import { HttpClient } from "../utils/http";
 import logger from "../infrastructure/logger";
 import { ethers } from "ethers";
 import config, { USER_DIR } from "../config";
-import { generateEmail } from "../utils/help";
+import { generateEmail, sleep } from "../utils/help";
 import { EmailAccount, EmailTable } from "../schema/emails";
 import { PageWithCursor } from "puppeteer-real-browser";
 import { queryToken } from "../utils/encode/cf";
@@ -118,16 +118,15 @@ export class Base extends APP {
     }
 
     let q = option.where;
-    if (config.app.debug) {
-      option.lockTime = 1;
-    }
 
-    q = and(
-      q,
-      sql.raw(
-        `(${option.lockKey} is null OR ${option.lockKey} < DATE_SUB(NOW(), INTERVAL ${option.lockTime} MINUTE))`,
-      ),
-    );
+    if (!config.app.debug) {
+      q = and(
+        q,
+        sql.raw(
+          `(${option.lockKey} is null OR ${option.lockKey} < DATE_SUB(NOW(), INTERVAL ${option.lockTime} MINUTE))`,
+        ),
+      );
+    }
 
     const order = option.orderBy ?? sql`RAND()`;
 
@@ -294,6 +293,7 @@ export class Base extends APP {
           } catch (error) {
             console.log(error);
           }
+          await sleep(2_000);
         }
         return null;
       },
@@ -431,9 +431,11 @@ export class Base extends APP {
       },
       async (token: string, u: string) => {
         await that.updateAccount({ x_token: token }, sql`id = ${account.id}`);
+        account.x_token = token;
       },
     );
 
+    if (!ok) account.x_token = "";
     return ok;
   }
 

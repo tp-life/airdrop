@@ -2,6 +2,7 @@ import axios from "axios";
 import logger from "../infrastructure/logger";
 import { HttpProxyAgent } from "http-proxy-agent";
 import config, { ENV_DEV } from "../config";
+import https from "https";
 
 interface ApiResponse {
   error: {
@@ -26,10 +27,15 @@ async function getRandProxyIP(area?: string): Promise<ProxyIP> {
   // if (config.app.debug) {
   //   h = config.app.debug;
   // }
+  const instance = axios.create({
+    httpsAgent: new https.Agent({
+      rejectUnauthorized: false, // ❌ 不验证 SSL 证书
+    }),
+  });
   for (let i = 0; i < 10; i++) {
     try {
       const url = `${config.app.ip_url}?area=${area}`;
-      const response = await axios.get<ApiResponse>(url);
+      const response = await instance.get<ApiResponse>(url);
       let { host, port } = response.data;
 
       if (!!process.env.PROXY_HOST) {

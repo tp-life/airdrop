@@ -179,49 +179,7 @@ class TwitterAPI:
 
         return response.json().get('data', {}).get("user", {}).get("result", {})
 
-    def auth_code(self, code):
-        url = f"https://api.x.com/oauth/authorize?oauth_token={code}"
-        response = requests.get(url, headers=self.headers, proxies=self.proxies)
 
-        if response.status_code != 200:
-            logger.error("获取 Twitter authorize 页面失败")
-            return None
-
-        # 提取 authenticity_token
-        match = re.search(r'name="authenticity_token"[^>]*value="([^"]+)"', response.text)
-        if match:
-            return match.group(1)
-        else:
-            logger.error("未获取到 authenticity_token")
-            return None
-
-    def authorize(self, oauth_token):
-        authenticity_token = self.auth_code(oauth_token)
-        if not authenticity_token:
-            logger.error("Authorize 获取认证码失败")
-            return None
-
-        url = "https://x.com/oauth/authorize"
-        payload = {
-            "authenticity_token": authenticity_token,
-            "redirect_after_login": f"https://api.x.com/oauth/authorize?oauth_token={oauth_token}",
-            "oauth_token": oauth_token
-        }
-
-        response = requests.post(url, headers=self.headers, data=payload, proxies=self.proxies)
-
-        if response.status_code != 200:
-            logger.error("Authorize 推特失败")
-            return None
-
-        # 提取重定向 URL
-        match = re.search(r'<meta[^>]*http-equiv="refresh"[^>]*content="[^;]+;url=([^"]+)"', response.text)
-        if match:
-            callback = match.group(1).replace("&amp;", "&")
-            logger.info(f"Authorize 重定向到: {callback}")
-            return callback
-
-        return None
     # 获取twid
     def gettwid(self):
         url = "https://x.com/home?precache=1"

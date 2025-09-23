@@ -152,7 +152,7 @@ export class Spekter extends Base {
     const url = "https://public.api.on3.one/api/Rewards/spin";
     let data = JSON.stringify({});
     const resp = await this.requestByFetch(page, "post", url, data);
-    if (!resp) return;
+    if (!resp) throw Error("任务完成失败");
   }
 
   async uploadImage(page: PageWithCursor, user: UserInfo) {

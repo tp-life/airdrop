@@ -14,7 +14,7 @@ export function wrapSelector(selector: string): string {
     if (sp.length != 2) {
       return selector;
     }
-    return `${sp[0].trim()} ::-p-text(${sp[1].trim()})`;
+    return `${sp[0].trim()} >>> ::-p-text(${sp[1].trim()})`;
   }
 
   return selector;
@@ -525,11 +525,12 @@ export function by_fn(
   fn: () => Promise<void>,
   delay: number = 800,
   has: boolean = false,
+  selector?: string,
   stop?: () => Promise<boolean>,
 ): Step {
   return {
     action: "fn",
-    selector: "",
+    selector,
     delay,
     has,
     stop,

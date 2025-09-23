@@ -27,7 +27,7 @@ export interface TwitterAuthConfig {
   new_tab?: boolean;
 }
 
-class TwitterAuthenticator {
+export class TwitterAuthenticator {
   protected domain: string | null;
   static SUSPENDED_SELECTORS = [
     '//*[contains(text(), "Your account is suspended")]',
@@ -57,7 +57,7 @@ class TwitterAuthenticator {
   async checkSuspended(page: Page): Promise<boolean> {
     for (const selector of TwitterAuthenticator.SUSPENDED_SELECTORS) {
       const element = await has(page, selector);
-      if (element) return true;
+      if (element) throw new BlockedError("Twitter账号已被暂停或锁定");
     }
     return false;
   }
@@ -82,7 +82,7 @@ class TwitterConnector extends TwitterAuthenticator {
   }
 
   async verifyConnection(page: Page): Promise<boolean> {
-    await sleep(1_000);
+    await sleep(2_000);
     if (await has(page, '//*[contains(text(), "Your account is suspended")]')) {
       throw new BlockedError("Twitter账号已被暂停");
     }

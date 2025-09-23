@@ -4,6 +4,7 @@ import { EmailReceiver, EmailReceiverOptions, EmailSummary } from "./email";
 import logger from "../infrastructure/logger";
 import path from "node:path";
 import { readdirSync } from "node:fs";
+import { randomBytes } from "crypto";
 
 export function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -246,4 +247,8 @@ export function getRandomElements<T>(arr: T[], count: number = 1): T[] {
   }
 
   return shuffled.slice(0, count);
+}
+
+export function tokenHex(length: number = 16): string {
+  return randomBytes(length).toString("hex");
 }

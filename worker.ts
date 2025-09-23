@@ -71,6 +71,7 @@ process.on("uncaughtException", async (err) => {
 
   try {
     parentPort?.postMessage("ok");
+    await safeStop();
     process.exit(0); // 显式退出
   } catch (err) {
     logger.error(`[worker:${workID}] 执行失败: ${err}`);

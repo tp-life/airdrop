@@ -15,3 +15,5 @@ import "../src/bloom";
 import "../src/rialo";
 import "../src/ithaca";
 import "../src/speolia";
+import "../src/nexus";
+import "../src/faucet";
