@@ -43,9 +43,10 @@ export class Inco extends Base {
     const account = await this.getAccount<IncoAccount>({ where: q });
     await this.mintUSDC(account);
     await sleep(5_000);
-    const amt = await this.shield(account);
+    await this.unShield(account, "2000");
+
     await sleep(5_000);
-    await this.unShield(account, amt);
+    const amt = await this.shield(account);
     await this.updateAccount(
       { next_time: sql`DATE_ADD(NOW(), INTERVAL 14 DAY)` },
       sql`id = ${account.id}`,
@@ -108,7 +109,7 @@ export class Inco extends Base {
   async mintUSDC(account: IncoAccount) {
     if (account.task_flag > 0) return;
     const wallet = new EvmWallet(BASE_TEST_RPC, { privateKey: this.pk });
-    const tx = await wallet.callWithAbi(this.usdcContract, ERC20_ABI, "mint", [
+    const tx = await wallet.callWithAbi(this.taskContract, ERC20_ABI, "mint", [
       account.addr,
       ethers.parseEther("3000"),
     ]);
