@@ -67,7 +67,7 @@ export class Inco extends Base {
     }
     account.wrap = account.wrap + Number(amt);
     await this.updateAccount(
-      { wrap: sql`wrap + ${amt}`, task_flag: 2 },
+      { wrap: sql`wrap + ${amt}`, task_flag: 3 },
       sql`id = ${account.id}`,
     );
     return amt;
@@ -87,7 +87,7 @@ export class Inco extends Base {
     }
     account.un_wrap = account.un_wrap + use_amt;
     await this.updateAccount(
-      { un_wrap: sql`un_wrap + ${use_amt}`, task_flag: 3 },
+      { un_wrap: sql`un_wrap + ${use_amt}`, task_flag: 2 },
       sql`id = ${account.id}`,
     );
     return true;
