@@ -3,7 +3,6 @@ import { eq, sql } from "drizzle-orm";
 import { BrowserManage } from "../utils/browser";
 import { Register } from "../register/decorators";
 import {
-  generateEmail,
   generateName,
   padToTen,
   parseEmailInfo,
@@ -20,7 +19,6 @@ import {
   wrapSelector,
 } from "../utils/browser/page";
 import logger from "../infrastructure/logger";
-import config from "../config";
 import { EnsoAccount, EnsoTable } from "../schema/enso";
 import { Page } from "rebrowser-puppeteer-core";
 import * as jwt from "jsonwebtoken";
@@ -31,7 +29,6 @@ import { signMessageWithPrivateKey } from "../utils/onchain/help";
 import { waitForHcaptchaVerified } from "../utils/browser/ext";
 import { Wallet } from "../utils/wallet/wallet";
 import { getTypeByExt } from "../utils/wallet/config";
-import { EmailAccount, EmailTable } from "../schema/emails";
 
 interface TrackProjecResp {
   success: boolean;

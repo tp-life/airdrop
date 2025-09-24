@@ -58,6 +58,9 @@ export interface CommonFields {
   email_pass?: string | null;
   x_token?: string | null;
   dc_token?: string | null;
+  referral_code?: string;
+  from_referral_code?: string;
+  referral_total?: number;
 }
 
 // 泛型约束：表的行数据必须至少包含 CommonFields

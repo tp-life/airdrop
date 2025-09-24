@@ -33,6 +33,7 @@ func Mirage() {
 		// &entities.Spekter{},
 		// &entities.CommonTask{},
 		// &entities.Bloom{},
-		&entities.IthacaBridge{},
+		// &entities.IthacaBridge{},
+		&entities.Jigsaw{},
 	)
 }

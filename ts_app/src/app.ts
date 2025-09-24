@@ -167,6 +167,35 @@ export class Base extends APP {
     return account as T;
   }
 
+  async getInvite<T extends MySqlTable>(
+    account: WithCommonFields<T>,
+    code = "",
+  ) {
+    if (account.from_referral_code) {
+      return account.from_referral_code;
+    }
+    const invite = await this.getAccount<WithCommonFields<T>>({
+      where: sql`referral_code > '' AND referral_total < 20 `,
+      hasIP: false,
+      raise: false,
+      lockKey: "referral_locked",
+      lockTime: 5,
+    });
+    if (invite) {
+      code = invite.referral_code;
+    }
+    account.from_referral_code = code;
+    if (!code) return "";
+    await this.updateAccountByID({ from_referral_code: code }, account.id);
+    if (invite) {
+      await this.updateAccountByID(
+        { referral_total: sql`referral_total + 1` },
+        invite.id,
+      );
+    }
+    return code;
+  }
+
   async updateAccount<T extends MySqlTable>(
     doc: MySqlUpdateSetSource<T>,
     where: SQL,
@@ -416,7 +445,7 @@ export class Base extends APP {
     account: WithCommonFields<T>,
     btn: string,
     query: SQL = null,
-  ) {
+  ): Promise<boolean> {
     const that = this;
     const ok = await autoXAuth(
       page,
@@ -444,7 +473,7 @@ export class Base extends APP {
     account: WithCommonFields<T>,
     btn: string,
     query: SQL = null,
-  ) {
+  ): Promise<boolean> {
     const that = this;
     const ok = await autoDiscordAuth(
       page,
