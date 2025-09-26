@@ -1,4 +1,4 @@
-import type { Browser, ElementHandle, Page } from "rebrowser-puppeteer-core";
+import { Browser, ElementHandle, Page } from "rebrowser-puppeteer-core";
 import {
   by_click,
   by_input,
@@ -27,6 +27,7 @@ export class Gmail {
       browser,
       "https://accounts.google.com/v3/signin/identifier?continue=https%3A%2F%2Fmail.google.com%2Fmail%2F&dsh=S1796385929%3A1758699945373759&ifkv=AfYwgwVF-7PhpR69v7300JTqRE0No8UGiRxfCON3jtZ8EtlaQIy-Ab322mT-uB9rFGBO_azIKbcJ9g&rip=1&sacu=1&service=mail&flowName=GlifWebSignIn&flowEntry=ServiceLogin",
     );
+    if (!page) throw new Error("无法打开登录页面");
     await executeSteps(page, [
       by_wait(`input[name="identifier"]`),
       by_input(`input[name="identifier"]`, this.email),
@@ -35,11 +36,13 @@ export class Gmail {
       by_click(`#passwordNext`),
     ]);
 
+    await page.waitForNavigation({ timeout: 90_000 });
+    await sleep(6_000);
     const cond = {
       '//div[text()="Mail"]': async () => true,
     };
-
     const ok = await race(page, cond);
+    if (ok) await page.close();
     return ok;
   }
 
@@ -61,14 +64,15 @@ export class Gmail {
       logger.info("Authenticating...");
       for (let i = 0; i < 10; i++) {
         try {
-          await el.click();
           await sleep(2_000);
-          await click(page, `//span[text()="Continue"]`);
-          if (await has(page, `div[data-authuser="0"]`)) {
-            await el.click();
-            continue;
-          }
+          await executeSteps(page, [
+            by_click(
+              `//div[@data-identifier="${this.email.toLocaleLowerCase()}"]`,
+            ),
+            by_click(`//span[text()="Continue"]`, 2_000),
+          ]);
 
+          await page.waitForNavigation();
           return true;
         } catch (err) {
           console.warn("[Auth] Click failed, retrying...", err);
@@ -78,13 +82,13 @@ export class Gmail {
       return false;
     };
     const actionMap = {
-      '`div[data-authuser="0"]`': _auth,
-      [wrapSelector(`input[name="identifier"]`)]: () => {
+      [`//div[@data-identifier="${this.email.toLocaleLowerCase()}"]`]: _auth,
+      'input[name="identifier"]': async () => {
         throw new BlockedError("Gmail 已被禁用");
       },
     };
 
-    return await race(page, actionMap, 20_000);
+    return await race(page, actionMap, 10_000);
   }
 
   async authByFront(page: Page, btn: string, newTab = false) {

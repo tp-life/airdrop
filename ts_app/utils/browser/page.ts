@@ -214,12 +214,15 @@ export async function race<T>(
 ): Promise<T | null> {
   const racePromises = Object.entries(tasks).map(([selector, callback]) =>
     page
-      .waitForSelector(selector, { timeout })
-      .then(async (el) => (el ? callback(el) : undefined)),
+      .waitForSelector(wrapSelector(selector), { timeout })
+      .then(async (el) => ({ callback, el })),
   );
 
   const result = await Promise.race(racePromises);
-  return result ?? null;
+  if (result.el) {
+    return result.callback(result.el);
+  }
+  return null;
 }
 
 export async function closePage(
@@ -274,7 +277,7 @@ export async function newPage(browser: Browser, url?: string): Promise<Page> {
   try {
     // await page.setViewport({ width: 1920, height: 1080 });
     if (!url) return page;
-    await page.goto(url, { waitUntil: "networkidle2" });
+    await page.goto(url, { waitUntil: "networkidle2", timeout: 90_000 });
     await page.bringToFront();
   } catch (err) {
     if (err.message.includes("net::ERR_ABORTED")) {
@@ -282,6 +285,7 @@ export async function newPage(browser: Browser, url?: string): Promise<Page> {
     } else {
       logger.error("打开页面失败", err);
       await page.close();
+      return null;
     }
   }
 

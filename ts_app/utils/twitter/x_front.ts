@@ -194,7 +194,7 @@ export async function autoXAuth(
 
     const authPage = await navigateToAuthPage(page, config);
     await sleep(2_000);
-
+    await authPage.bringToFront();
     try {
       if (await twitter.authenticate(authPage, config.stop_flag)) {
         useResource(TwitterTable, sql`token =${token}`, config.project);
